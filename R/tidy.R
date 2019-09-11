@@ -101,3 +101,32 @@ tidy.calc_genoprob <- function(x, map = NULL){
 }
 
 
+#' @rdname qtl2_tidiers
+#' @export
+tidy.scan1perm <- function(x, map = NULL, alpha = 0.05){
+
+  # get LOD thresholds
+  perm_sum <- qtl2::summary_scan1perm(x, alpha)
+
+  # convert to tibble
+  if(is.list(perm_sum)){
+
+    # if X chromosome was present
+    perm_sum <- lapply(perm_sum, tibble::as_tibble, rownames = "alpha")
+    perm_sum <- dplyr::bind_rows(perm_sum, .id = "chrom_type")
+
+    # reshape to long format
+    perm_sum <- tidyr::gather(perm_sum, "pheno", "threshold", -alpha, -chrom_type)
+
+  } else {
+
+    perm_sum <- tibble::as_tibble(perm_sum, rownames = "alpha")
+
+    # reshape to long format
+    perm_sum <- tidyr::gather(perm_sum, "pheno", "threshold", -alpha)
+
+  }
+
+  # return the tibble
+  return(perm_sum)
+}
