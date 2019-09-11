@@ -1,0 +1,25 @@
+Package: qtl2helper
+Type: Package
+Title: Helper functions for R/qtl2 package
+Version: 0.1.0
+Authors@R: person("Hugo", "Tavares",
+                role = c("aut", "cre"),
+                email = "hm533@cam.ac.uk")
+Maintainer: Hugo Tavares <hm533@cam.ac.uk>
+Description: qtl2helper provides helper functions to work with objects 
+    created by several functions in the R/qtl2 package. Namely, it provides methods 
+    for the `tidy` function (from the `broom` package), which convert those objects 
+    to (long) data frames.
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
+Imports:
+  methods,
+  dplyr,
+  tidyr,
+  tibble,
+  broom
+Suggests: 
+  testthat,
+  ggplot2
+RoxygenNote: 6.1.1
