@@ -4,6 +4,7 @@
 \alias{tidy.scan1}
 \alias{tidy.scan1coef}
 \alias{tidy.calc_genoprob}
+\alias{tidy.scan1perm}
 \title{Tidy R/qtl2 objects}
 \usage{
 \method{tidy}{scan1}(x, map = NULL)
@@ -11,12 +12,16 @@
 \method{tidy}{scan1coef}(x, map = NULL)
 
 \method{tidy}{calc_genoprob}(x, map = NULL)
+
+\method{tidy}{scan1perm}(x, alpha = 0.05)
 }
 \arguments{
 \item{x}{The object to coerce.}
 
 \item{map}{An optional list of vectors of marker positions, as produced by
 qtl2::insert_pseudomarkers() or the `$gmap` element of a `cross2` object.}
+
+\item{alpha}{Vector of significance levels (for `scan1perm` objects).}
 }
 \description{
 Convert the output of `qtl2` functions to a `tibble` in *long* format.

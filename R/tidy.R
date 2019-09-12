@@ -101,9 +101,11 @@ tidy.calc_genoprob <- function(x, map = NULL){
 }
 
 
+#' @param alpha Vector of significance levels (for `scan1perm` objects).
+#'
 #' @rdname qtl2_tidiers
 #' @export
-tidy.scan1perm <- function(x, map = NULL, alpha = 0.05){
+tidy.scan1perm <- function(x, alpha = 0.05){
 
   # get LOD thresholds
   perm_sum <- qtl2::summary_scan1perm(x, alpha)
