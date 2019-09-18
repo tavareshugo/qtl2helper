@@ -28,7 +28,7 @@
   .tbl <- dplyr::right_join(map_tbl, .tbl, by = "marker")
 
   # coerce chromosome to factor (to ensure ordering when plotting)
-  .tbl$chrom <- factor(.tbl$chrom, levels = names(map))
+  .tbl$chrom <- factor(.tbl$chrom, levels = names(.map))
 
   # check all markers are present
   if(any(!(.tbl$marker %in% map_tbl$marker))){
