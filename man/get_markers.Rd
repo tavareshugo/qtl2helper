@@ -16,6 +16,6 @@ get_markers(x)
 a tibble
 }
 \description{
-This function gets both genetic and physical position of all markers in a `cross2`
+This function gets both genetic and physical position of all markers in a \code{cross2}
 object.
 }

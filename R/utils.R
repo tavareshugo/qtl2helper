@@ -1,10 +1,13 @@
 #' Utility functions for qtl2helper
 #'
-#' These functions are not exported.
+#' These are internal utility functions (not exported).
 #'
+#' @name qtl2helper_utils
 #' @rdname qtl2helper_utils
+NULL
 
-
+#' @description `.join_map_by_marker()` joins a qtl2 marker map to a table.
+#'
 #' @param .tbl a `data.frame` or `tibble` to add the map data to.
 #' Should contain a column named "marker".
 #' @param .map the marker map, for example from `qtl2::insert_pseudomarkers()`.

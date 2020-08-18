@@ -19,16 +19,18 @@
 \item{x}{The object to coerce.}
 
 \item{map}{An optional list of vectors of marker positions, as produced by
-qtl2::insert_pseudomarkers() or the `$gmap` element of a `cross2` object.}
+qtl2::insert_pseudomarkers() or the \verb{$gmap} element of a \code{cross2} object.}
 
-\item{alpha}{Vector of significance levels (for `scan1perm` objects).}
+\item{alpha}{Vector of significance levels (for \code{scan1perm} objects).}
 }
 \description{
-Convert the output of `qtl2` functions to a `tibble` in *long* format.
+Convert the output of \code{qtl2} functions to a \code{tibble} in \emph{long} format.
 These are generally useful for downstream plotting analysis.
 }
 \details{
-At the moment the output from the following `R/qtl2` functions are recognised:
-- `scan1()`
-- `scan1coef()`
+At the moment the output from the following \code{R/qtl2} functions are recognised:
+\itemize{
+\item \code{scan1()}
+\item \code{scan1coef()}
+}
 }
