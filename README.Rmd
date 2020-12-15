@@ -12,10 +12,15 @@ knitr::opts_chunk$set(echo = TRUE)
 
 `qtl2helper` provides with some helper functions to work with objects created by several functions in the [`R/qtl2`](https://kbroman.org/qtl2/) package. 
 
-To install the package do:
+To install the package run:
 
-```
-# make sure the remotes package is installed
+```{r, eval=FALSE}
+# install the remotes package if not installed already
+if (!("remotes" %in% rownames(installed.packages()))){
+  install.packages("remotes")
+}
+
+# install the package directly from github
 remotes::install_github("tavareshugo/qtl2helper")
 ```
 
