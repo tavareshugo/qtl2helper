@@ -18,6 +18,7 @@
 tidy.scan1 <- function(x, map = NULL){
 
   # convert to tibble
+  x_tbl <- as.data.frame(x) # to remove `scan1` class
   x_tbl <- tibble::as_tibble(x, rownames = "marker")
 
   # convert to long format
@@ -37,6 +38,7 @@ tidy.scan1 <- function(x, map = NULL){
 tidy.scan1coef <- function(x, map = NULL){
 
   # Convert coefficients to tibble
+  coefs <- as.data.frame(x) # to remove `scan1coef` class
   coefs <- tibble::as_tibble(x, rownames = "marker")
 
   # reshape table to long format
