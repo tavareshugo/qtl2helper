@@ -19,7 +19,7 @@ tidy.scan1 <- function(x, map = NULL){
 
   # convert to tibble
   x_tbl <- as.data.frame(x) # to remove `scan1` class
-  x_tbl <- tibble::as_tibble(x, rownames = "marker")
+  x_tbl <- tibble::as_tibble(x_tbl, rownames = "marker")
 
   # convert to long format
   x_tbl <- tidyr::gather(x_tbl, "pheno", "LOD", -marker)
@@ -39,7 +39,7 @@ tidy.scan1coef <- function(x, map = NULL){
 
   # Convert coefficients to tibble
   coefs <- as.data.frame(x) # to remove `scan1coef` class
-  coefs <- tibble::as_tibble(x, rownames = "marker")
+  coefs <- tibble::as_tibble(coefs, rownames = "marker")
 
   # reshape table to long format
   coefs <- tidyr::gather(coefs, "coef", "estimate", -marker)
@@ -116,7 +116,9 @@ tidy.scan1perm <- function(x, alpha = 0.05){
   if(is.list(perm_sum)){
 
     # if X chromosome was present
-    perm_sum <- lapply(perm_sum, tibble::as_tibble, rownames = "alpha")
+    perm_sum <- lapply(perm_sum, function(i){
+      tibble::as_tibble(as.data.frame(i), rownames = "alpha")
+    })
     perm_sum <- dplyr::bind_rows(perm_sum, .id = "chrom_type")
 
     # reshape to long format
@@ -124,7 +126,7 @@ tidy.scan1perm <- function(x, alpha = 0.05){
 
   } else {
 
-    perm_sum <- tibble::as_tibble(perm_sum, rownames = "alpha")
+    perm_sum <- tibble::as_tibble(as.data.frame(perm_sum), rownames = "alpha")
 
     # reshape to long format
     perm_sum <- tidyr::gather(perm_sum, "pheno", "threshold", -alpha)
