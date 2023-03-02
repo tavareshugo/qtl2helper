@@ -42,11 +42,11 @@ add_pheno.cross2 <- function(x, pheno, idcol = 1L, retain_all = TRUE){
     ids <- ids[which(ids %in% rownames(x$geno[[1]]))]
 
     # Subset phenotype table to retain only those individuals
-    pheno <- pheno[ids, -idcol]
+    pheno <- pheno[ids, -idcol, drop = FALSE]
   }
 
   # remove ID column from pheno table
-  pheno <- pheno[, -idcol]
+  pheno <- pheno[, -idcol, drop = FALSE]
 
   # Convert to matrix using qtl2 helper function
   pheno <- qtl2:::pheno2matrix(pheno)
