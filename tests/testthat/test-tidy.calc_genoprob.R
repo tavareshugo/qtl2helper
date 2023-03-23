@@ -20,8 +20,8 @@ test_that("coercion of calc_genoprob to tibble - no map",
             expect_true(tibble::is_tibble(probs_tbl))
             expect_true(all(probs_tbl$marker %in% markers))
             expect_equal(nrow(probs_tbl), n)
-            expect_equal(ncol(probs_tbl), 3)
-            expect_equal(colnames(probs_tbl), c("marker", "genotype", "probability"))
+            expect_equal(ncol(probs_tbl), 4)
+            expect_equal(colnames(probs_tbl), c("marker", "id", "genotype", "probability"))
 
             })
 
@@ -33,7 +33,7 @@ test_that("coercion of calc_genoprob to tibble - with map",
             # expectations
             expect_true(tibble::is_tibble(probs_tbl))
             expect_equal(nrow(probs_tbl), n)
-            expect_equal(ncol(probs_tbl), 5)
-            expect_equal(colnames(probs_tbl), c("marker", "chrom", "pos", "genotype", "probability"))
+            expect_equal(ncol(probs_tbl), 6)
+            expect_equal(colnames(probs_tbl), c("marker", "chrom", "pos", "id", "genotype", "probability"))
 
           })

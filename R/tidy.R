@@ -22,7 +22,10 @@ tidy.scan1 <- function(x, map = NULL){
   x_tbl <- tibble::as_tibble(x_tbl, rownames = "marker")
 
   # convert to long format
-  x_tbl <- tidyr::gather(x_tbl, "pheno", "LOD", -marker)
+  x_tbl <- tidyr::pivot_longer(x_tbl, 
+                               cols = c(-marker),
+                               names_to = "pheno", 
+                               values_to = "LOD")
 
   # add map data
   if(!is.null(map)){
@@ -42,12 +45,18 @@ tidy.scan1coef <- function(x, map = NULL){
   coefs <- tibble::as_tibble(coefs, rownames = "marker")
 
   # reshape table to long format
-  coefs <- tidyr::gather(coefs, "coef", "estimate", -marker)
+  coefs <- tidyr::pivot_longer(coefs, 
+                               cols = c(-marker),
+                               names_to = "coef", 
+                               values_to = "estimate")
 
   # Convert SEs to tibble and join to mean effect
   if("SE" %in% names(attributes(x))){
     SEs <- tibble::as_tibble(attr(x, "SE"), rownames = "marker")
-    SEs <- tidyr::gather(SEs, "coef", "SE", -marker)
+    SEs <- tidyr::pivot_longer(SEs, 
+                               cols = c(-marker),
+                               names_to = "coef", 
+                               values_to = "SE")
 
     coefs <- dplyr::full_join(coefs, SEs, by = c("marker", "coef"))
   }
@@ -79,15 +88,21 @@ tidy.calc_genoprob <- function(x, map = NULL){
     chrom_probs <- x[[chrom]]
 
     for (marker in attr(chrom_probs, "dimnames")[[3]]){
-      marker_probs[[marker]] <- tibble::as_tibble(chrom_probs[, , marker])
+      marker_probs[[marker]] <- tibble::as_tibble(chrom_probs[, , marker],
+                                                  rownames = "id")
+      # marker_probs[[marker]] <- as.data.frame(chrom_probs[, , marker])
     }
   }
 
   # bind them into a single tibble
   marker_probs <- dplyr::bind_rows(marker_probs, .id = "marker")
+  # marker_probs <- do.call(rbind, marker_probs)
 
   # reshape to long format
-  marker_probs <- tidyr::gather(marker_probs, "genotype", "probability", -marker)
+  marker_probs <- tidyr::pivot_longer(marker_probs, 
+                                      cols = c(-marker, -id),
+                                      names_to = "genotype", 
+                                      values_to = "probability")
 
   # remove missing values
   marker_probs <- tidyr::drop_na(marker_probs)
@@ -122,14 +137,20 @@ tidy.scan1perm <- function(x, alpha = 0.05){
     perm_sum <- dplyr::bind_rows(perm_sum, .id = "chrom_type")
 
     # reshape to long format
-    perm_sum <- tidyr::gather(perm_sum, "pheno", "threshold", -alpha, -chrom_type)
+    perm_sum <- tidyr::pivot_longer(perm_sum, 
+                                    cols = c(-alpha, -chrom_type),
+                                    names_to = "pheno", 
+                                    values_to = "threshold")
 
   } else {
 
     perm_sum <- tibble::as_tibble(as.data.frame(perm_sum), rownames = "alpha")
 
     # reshape to long format
-    perm_sum <- tidyr::gather(perm_sum, "pheno", "threshold", -alpha)
+    perm_sum <- tidyr::pivot_longer(perm_sum, 
+                              cols = c(-alpha),
+                              names_to = "pheno", 
+                              values_to = "threshold")
 
   }
 
