@@ -14,11 +14,11 @@ License: GPL-3
 Encoding: UTF-8
 LazyData: true
 Imports:
-  methods,
-  dplyr,
-  tidyr,
-  tibble,
-  broom
+    methods,
+    dplyr,
+    tidyr,
+    tibble,
+    generics
 Suggests: 
   testthat,
   ggplot2
