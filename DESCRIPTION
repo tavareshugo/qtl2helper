@@ -20,7 +20,11 @@ Imports:
     tibble,
     generics
 Suggests: 
-  testthat,
-  ggplot2
+    testthat,
+    ggplot2,
+    knitr,
+    rmarkdown,
+    atMAGIC
 RoxygenNote: 7.1.1
 Roxygen: list(markdown = TRUE)
+VignetteBuilder: knitr

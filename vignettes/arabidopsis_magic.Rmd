@@ -1,0 +1,236 @@
+---
+title: "R/qtl2 in MAGIC lines"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{covariates}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+Example analysis using R/qtl2 on the Arabidopsis MAGIC lines, including the use of covariates. 
+
+Note: this document is a guideline only, and the results from your own analysis should be critically evaluated. 
+
+## Data
+
+We use the data provided in the `atMAGIC` package, which already contains a `cross2` object for the `qtl2` package with all the MAGIC line genotypes from Kover et al. 2009.  
+This data package is only available on GitHub and can be installed following the instructions in the [repository's README](https://github.com/tavareshugo/atMAGIC).
+
+We also use a helper package `qtl2helper`, also [available on GitHub](https://github.com/tavareshugo/qtl2helper). 
+This package contains helper functions to work with and tidy the objects from `qtl2`. 
+
+Finally, we read phenotype data available online as an example for this tutorial. 
+
+```{r}
+library(atMAGIC)
+library(qtl2)
+library(qtl2helper)
+library(ggplot2)
+library(dplyr)
+
+# Prepare data ------
+
+# Read example data
+pheno <- read.table("http://mtweb.cs.ucl.ac.uk/mus/www/magic/MAGIC.phenotype.example.12102015.txt",
+                    header = TRUE)
+
+# Add to kover2009 - retain only individuals with phenotype data
+kover2009 <- add_pheno(kover2009, pheno, 
+                       idcol = "SUBJECT.NAME",
+                       retain_all = FALSE)
+
+# Calculate genotype probabilities
+kover2009_probs <- calc_genoprob(kover2009)
+```
+
+In the last step we also calculate genotype probabilities based on the SNP data. 
+Since the MAGIC lines are derived from 19 accessions, the SNP genotypes can be used to infer the accession genotype at each marker. 
+This is expressed as a probability (as there is some uncertainty) and, for each marker, this probability matrix is used for the association test. 
+
+Here is an example of the probability matrix for one of the markers in one of the MAGIC lines: 
+
+```{r}
+pull_genoprobpos(kover2009_probs, marker = "MN1_29716")[1:10, ]
+```
+
+This matrix is effectively what is being used when doing the association mapping. 
+This can be thought as a matrix of predictors in a linear model. 
+For example: 
+
+```{r}
+marker_prob <- pull_genoprobpos(kover2009_probs, 
+                                marker = "MN5_3177504")
+summary(lm(kover2009$pheno[, "days.to.bolt"] ~ marker_prob))
+```
+
+## Simple Scan
+
+The first example is just a simple scan across the traits. 
+
+```{r}
+# Normal scan ----
+
+# scan for all traits in the object
+trait_scan <- scan1(kover2009_probs, 
+                    pheno = kover2009$pheno)
+
+# visualise the scan for one of the traits
+plot(trait_scan, kover2009$pmap, lodcolumn = "days.to.bolt")
+```
+
+We can also run a permutation test to define LOD thresholds: 
+
+```{r}
+# Run permutations for genome-wide threshold
+scan_perm <- scan1perm(kover2009_probs, kover2009$pheno, n_perm = 500)
+scan_threshold <- summary(scan_perm)
+scan_threshold
+```
+
+With these thresholds, we can find peaks in our QTL scan:
+
+```{r}
+find_peaks(trait_scan, map = kover2009$pmap, 
+           threshold = scan_threshold)
+```
+
+
+## Trait Covariate
+
+We can add covariates to our scan. 
+For example, we can see that the `bolt.to.flower` and `days.to.bolt` traits are correlated: 
+
+```{r}
+plot(kover2009$pheno[, "days.to.bolt"], 
+     kover2009$pheno[, "bolt.to.flower"])
+```
+
+Let's say we want to find QTL for `days.to.bolt` that explain residual variation left after accounting for this correlation. 
+This is basically equivalent to taking the residuals of a linear regression between the traits and then using that as a trait. 
+
+We can add `bolt.to.flower` as a covariate in the scan: 
+
+```{r}
+# scan with trait covariate
+scan_covar <- scan1(kover2009_probs, 
+                    pheno = kover2009$pheno[, "days.to.bolt", drop = FALSE], 
+                    addcovar = kover2009$pheno[, "bolt.to.flower", drop = FALSE])
+plot(scan_covar, kover2009$pmap, lodcolumn = "days.to.bolt")
+```
+
+We can see that the peak on Chr 4 is still very strong, but the one on Chr 5 has pretty much disappeared. 
+This suggests that Chr 5 peak might be shared for the two traits (or at least it explains some correlated variance in those traits).
+
+As before, we could perform a permutation analysis to define thresholds for this new scan. 
+
+
+## Marker Covariate
+
+Following the same logic as above, we can also ask the question: if I account for the genotype in a given locus (marker), is there any residual variation that is explained by other minor QTL?
+
+This should be achievable by adding a matrix of genotypes as a covariate to the scan, in a similar way as what we did with the phenotype. 
+
+For example, let's see if the peak on Chr 5 for our `days.to.bolt` trait remains after we add the Chr 4 peak. 
+Here is the original scan as a reference:
+
+```{r}
+plot(trait_scan, kover2009$pmap, "days.to.bolt")
+find_peaks(trait_scan, kover2009$pmap, scan_threshold)
+```
+
+To add a covariate to our model, we can use the matrix of genotype probabilities for the marker we want to use as covariate. 
+We can extract the matrix of genotypes for the Chr 4 marker, as shown earlier, and then perform the scan. 
+
+```{r}
+marker_prob <- pull_genoprobpos(kover2009_probs, 
+                                map = kover2009$pmap,
+                                chr = 4, pos = 301329)
+
+# scan with marker covariate
+scan_marker_covar <- scan1(kover2009_probs, 
+                           pheno = kover2009$pheno[, "days.to.bolt", drop = FALSE], 
+                           addcovar = marker_prob)
+plot(scan_marker_covar, kover2009$pmap, lodcolumn = "days.to.bolt")
+```
+
+As we can see, the high LOD score on markers linked to the Chr 4 marker that we used as a covariate have dropped (as expected). 
+The other peak on Chr 5 remains, suggesting it is explaining uncorrelated variance with Chr 4. 
+
+There might be scenarios where adding a covariate marker actually reveals new peaks. 
+
+### SNP Covariate
+
+Instead of adding the matrix of probabilities for the 19 accession alleles, we could instead add a SNP covariate (as a binary 0/1 variable). 
+
+Let's see what happens in that case, by again adding the SNP genotype at the Chr 4 peak as a covariate.
+
+```{r}
+# find what the marker index is
+marker_idx <- which(kover2009$pmap[[4]] == 301329)
+
+# extract the genotype
+snp_covar <- kover2009$geno[[4]][, marker_idx, drop = FALSE]
+
+# convert it to binary
+snp_covar[, 1] <- as.numeric(snp_covar[, 1] == 3)
+
+head(snp_covar)
+```
+
+Now we're ready for the scan:
+
+```{r}
+# scan with marker covariate
+scan_snp_covar <- scan1(kover2009_probs, 
+                        pheno = kover2009$pheno[, "days.to.bolt", drop = FALSE], 
+                        addcovar = snp_covar)
+plot(scan_snp_covar, kover2009$pmap, lodcolumn = "days.to.bolt")
+```
+
+Interesting: the Chr 4 peak remains the same. 
+Is it surprising? 
+To answer this, it helps to look at the allelic effect at the locus. 
+In addition, we colour each accession according to their SNP genotype at that locus.
+
+```{r}
+# get QTL effects
+chr4_eff <- scan1coef(kover2009_probs[,"4"], 
+                      kover2009$pheno[,"days.to.bolt"],
+                      se = TRUE)
+
+# tidy up and filter for marker of interest
+chr4_eff <- chr4_eff |> 
+  tidy(map = kover2009$pmap) |> 
+  filter(chrom == 4 & pos == 301329 & coef != "intercept")
+
+# get SNP genotype for each accession at that position
+acc_snp <- kover2009$founder_geno[[5]][, marker_idx, drop = FALSE]
+acc_snp <- acc_snp |> 
+  as_tibble(rownames = "accession") |> 
+  mutate(accession = paste0(accession, accession), 
+         snp = ifelse(MASC03480 == 3, "Alt", "Ref"))
+  
+# join and visualise
+acc_snp |> 
+  full_join(chr4_eff, by = c("accession" = "coef")) |> 
+  mutate(accession = forcats::fct_reorder(accession, estimate)) |> 
+  ggplot(aes(accession, estimate)) +
+  geom_pointrange(aes(ymin = estimate - SE*2, 
+                      ymax = estimate + SE*2,
+                      colour = snp))
+```
+
+We can see that several accessions have a higher-than-average effect on the trait, but they don't all share the same SNP allele. 
+In fact, two accessions that share the alternative (non-Columbia) allele have quite different trait effects. 
+
+This is why the accession-based scan can differ from the SNP-based scan. 
+
+This doesn't mean that there isn't a causal SNP that is shared amongst all the high-trait accessions linked to this locus. 
+We may have simply not genotyped it. 
